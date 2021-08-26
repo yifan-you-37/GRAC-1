@@ -42,6 +42,7 @@ if __name__ == '__main__':
             t_b = time.time()
             #print(i, (t_b - t_a) / (i+1), t_b - t_a)
     
+    
 
     # for i in range(a.shape[0]):
     #     buffer.insert(a[i])

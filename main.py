@@ -16,7 +16,7 @@ from RollerGrasperV2 import robot_env
 def eval_policy(policy, env_name, seed, eval_episodes=10, args=None):
 
 	if env_name == 'RollerGrasperV2':
-		eval_env = robot_env.RobotEnv(args)
+		eval_env = robot_env.RobotEnv(gui=False, args=args)
 	else:
 		eval_env = gym.make(env_name)
 		eval_env.seed(seed + 100)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 	np.random.seed(args.seed)
 	
 	if args.env == 'RollerGrasperV2':
-		env = robot_env.RobotEnv(args)
+		env = robot_env.RobotEnv(gui=True, args=args)
 		state_dim = env.state_dim
 		action_dim = env.action_dim
 		max_action = env.max_action
@@ -193,6 +193,10 @@ if __name__ == "__main__":
 				action = env.get_expert_action()
 			else:
 				action = np.random.uniform(-max_action, max_action, action_dim)
+			# print('action')
+			# print(action[:3])
+			# print(action[3:6])
+			# print(action[6:9])
 		else:
 			if args.use_expl_noise:
 				action = (
@@ -206,7 +210,6 @@ if __name__ == "__main__":
 
 		# Perform action
 		next_state, reward, done, _ = env.step(action)
-
 		if reward > reward_max:
 			reward_max = reward
 		reward_min_buffer.insert(reward)
