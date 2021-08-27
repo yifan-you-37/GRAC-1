@@ -42,9 +42,10 @@ if __name__ == '__main__':
             t_b = time.time()
             #print(i, (t_b - t_a) / (i+1), t_b - t_a)
     
+    
 
     # for i in range(a.shape[0]):
     #     buffer.insert(a[i])
     #     if (i+1) % 10000 == 0:
     #         t_b = time.time()
-    #         print(i, (t_b - t_a) / (i+1))nvidi
+    #         print(i, (t_b - t_a) / (i+1))
