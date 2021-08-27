@@ -104,10 +104,13 @@ class GRAC():
 		tau=0.005,
 		max_timesteps=3e6,
 		n_repeat=4,
-                actor_lr = 3e-4,
+		actor_lr=3e-4,
+		critic_lr=3e-4,
 		alpha_start=0.7,
-                alpha_end=0.9,
+		alpha_end=0.9,
 		no_adaptive_lr=False,
+		no_cem_select_action=False,
+		policy_freq=1,
 		adaptive_lr_weight=1,
 		device=torch.device('cuda'),
 	):
@@ -120,12 +123,13 @@ class GRAC():
 
 		self.device = device
 		self.actor_lr = actor_lr # here is actor lr is not the real actor learning rate
+		self.critic_lr = critic_lr
 
 		self.actor = Actor(state_dim, action_dim, max_action).to(device)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=self.actor_lr)
 
 		self.critic = Critic(state_dim, action_dim).to(device)
-		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)
+		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=self.critic_lr)
 
 		cem_sigma = 1e-2
 		cem_clip = 0.5 * max_action
@@ -142,8 +146,12 @@ class GRAC():
 
 		self.no_adaptive_lr = no_adaptive_lr
 		self.adaptive_lr_weight = adaptive_lr_weight
-
+		self.no_cem_select_action = no_cem_select_action
+		self.policy_freq = policy_freq
 		print('adaptive lr', not self.no_adaptive_lr)
+		print('critic lr', self.critic_lr)
+		print('no cem select action', self.no_cem_select_action)
+		print('policy freq', policy_freq)
 		print('adaptive lr weight', self.adaptive_lr_weight)
 
 
@@ -152,6 +160,8 @@ class GRAC():
 		if test is False:
 			with torch.no_grad():
 				action = self.actor(state)
+				if self.no_cem_select_action:
+					return action.cpu().data.numpy().flatten()
 				ceof = self.selection_action_coef - min(self.selection_action_coef-0.05, float(self.total_it) * 10.0/float(self.max_timesteps))
 				if np.random.uniform(0,1) < ceof:
 					better_action = self.searcher.search(state, action, self.critic.Q2, batch_size=1)
@@ -287,7 +297,7 @@ class GRAC():
 		critic_loss = F.mse_loss(current_Q1, target_Q_final) + F.mse_loss(current_Q2, target_Q_final)
 		weights_actor_lr = critic_loss.detach()
 
-		if self.total_it % 1 == 0:
+		if self.total_it % self.policy_freq == 0:
 
 			if not self.no_adaptive_lr:
 				lr_tmp = self.actor_lr / (self.adaptive_lr_weight * (float(weights_actor_lr)+1.0))

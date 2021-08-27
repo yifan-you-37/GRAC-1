@@ -68,7 +68,11 @@ if __name__ == "__main__":
 
 
 	parser.add_argument('--linear_reward', action="store_true")
+	parser.add_argument('--roller_reward_scale', default=100, type=float)
 	parser.add_argument('--expert_demo', action="store_true")
+	parser.add_argument('--no_cem_select_action', action="store_true")
+	parser.add_argument('--critic_lr', default=3e-4, type=float)
+	parser.add_argument('--gui', action='store_true')
 
 
 	parser.add_argument("--debug", action="store_true")
@@ -138,10 +142,13 @@ if __name__ == "__main__":
 		"alpha_start": args.alpha_start,
 		"alpha_end":args.alpha_end,
 		"device": device,
+
 	}
 	if args.policy == 'GRAC_clipq':
 		kwargs["no_adaptive_lr"] = args.no_adaptive_lr
 		kwargs["adaptive_lr_weight"] = args.adaptive_lr_weight
+		kwargs['critic_lr'] = args.critic_lr
+		kwargs['no_cem_select_action'] = args.no_cem_select_action
 	if args.policy == 'GRAC_noise' or 'noise' in args.policy:
 		kwargs['model_noise'] = args.model_noise
 		
@@ -153,8 +160,10 @@ if __name__ == "__main__":
 
 
 	if args.load_model != "":
-		policy_file = 'model' if args.load_model == "default" else args.load_model
-		policy.load("./{}/{}".format(result_folder, policy_file))
+		# policy_file = 'model' if args.load_model == "default" else args.load_model
+		# policy_file = 'iter_3000000_model'
+		# policy_file_dir = '/scr1/yifan/GRAC/runs/Aug26_11-35-48_TD3_ori_RollerGrasperV2_0/models/iter_3000000_model'
+		policy.load(args.load_model)
 
 	replay_buffer = utils.ReplayBufferTorch(state_dim, action_dim, device=device)
 
@@ -258,6 +267,9 @@ if __name__ == "__main__":
 			writer.add_scalar('test/avg_succ', evaluation_succ, t+1)
 			np.save("{}/evaluations".format(result_folder), evaluations)
 
+			if evaluation_succ > 0:
+				if args.save_model:
+					policy.save("./{}/models/iter_{}_model".format(result_folder, t + 1))
 		if (t + 1) % 50000 == 0: 
 			if args.save_model:
 				policy.save("./{}/models/iter_{}_model".format(result_folder, t + 1))
