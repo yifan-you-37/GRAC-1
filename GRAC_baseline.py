@@ -233,32 +233,32 @@ class GRAC():
 		critic_loss3_reg = F.mse_loss(target_Q1_, target_Q1) + F.mse_loss(target_Q2_, target_Q2)
 		critic_loss3_reg = critic_loss3_reg.detach()
 		
-		self.update_critic(critic_loss3)
-		init_critic_loss3 = critic_loss3.clone()
-		ratio = 0.0
-		max_step = 0
+		# self.update_critic(critic_loss3)
+		# init_critic_loss3 = critic_loss3.clone()
+		# ratio = 0.0SSSS
+		# max_step = 0
 
-		idi = 0
-		cond1 = 0
-		cond2 = 0
-		while True:
-			idi = idi + 1
-			current_Q1_, current_Q2_ = self.critic(state, action)
-			target_Q1_, target_Q2_ = self.critic(next_state, next_action)
-			critic_loss3 = F.mse_loss(current_Q1_, target_Q_final) + F.mse_loss(current_Q2_, target_Q_final) + F.mse_loss(target_Q1_, target_Q1) + F.mse_loss(target_Q2_, target_Q2)
-			critic_loss3_reg_after = F.mse_loss(target_Q1_, target_Q1) + F.mse_loss(target_Q2_, target_Q2)
-			critic_loss3_reg_after = critic_loss3_reg_after.detach()
-			self.update_critic(critic_loss3)
-			if self.total_it < self.max_timesteps:
-				bound = self.third_loss_bound + float(self.total_it) / float(self.max_timesteps) * (self.third_loss_bound_end - self.third_loss_bound)
-			else:
-				bound = self.third_loss_bound_end
-			if critic_loss3 < init_critic_loss3 * bound:
-				cond1 = 1
-				break   
-			if idi >= self.max_iter_steps:
-				cond2 = 1
-				break
+		# idi = 0
+		# cond1 = 0
+		# cond2 = 0
+		# while True:
+		# 	idi = idi + 1
+		# 	current_Q1_, current_Q2_ = self.critic(state, action)
+		# 	target_Q1_, target_Q2_ = self.critic(next_state, next_action)
+		# 	critic_loss3 = F.mse_loss(current_Q1_, target_Q_final) + F.mse_loss(current_Q2_, target_Q_final) + F.mse_loss(target_Q1_, target_Q1) + F.mse_loss(target_Q2_, target_Q2)
+		# 	critic_loss3_reg_after = F.mse_loss(target_Q1_, target_Q1) + F.mse_loss(target_Q2_, target_Q2)
+		# 	critic_loss3_reg_after = critic_loss3_reg_after.detach()
+		# 	self.update_critic(critic_loss3)
+		# 	if self.total_it < self.max_timesteps:
+		# 		bound = self.third_loss_bound + float(self.total_it) / float(self.max_timesteps) * (self.third_loss_bound_end - self.third_loss_bound)
+		# 	else:
+		# 		bound = self.third_loss_bound_end
+		# 	if critic_loss3 < init_critic_loss3 * bound:
+		# 		cond1 = 1
+		# 		break   
+		# 	if idi >= self.max_iter_steps:
+		# 		cond2 = 1
+		# 		break
 		critic_loss = F.mse_loss(current_Q1, target_Q_final) + F.mse_loss(current_Q2, target_Q_final)
 		weights_actor_lr = critic_loss.detach()
 
@@ -291,12 +291,12 @@ class GRAC():
 
 		if log_it:
 			with torch.no_grad():
-				writer.add_scalar('train_critic/third_loss_cond1', cond1, self.total_it)
-				writer.add_scalar('train_critic/third_loss_num', idi, self.total_it)
+				# writer.add_scalar('train_critic/third_loss_cond1', cond1, self.total_it)
+				# writer.add_scalar('train_critic/third_loss_num', idi, self.total_it)
 				writer.add_scalar('train_critic/critic_loss', critic_loss, self.total_it)
 				writer.add_scalar('train_critic/critic_loss3', critic_loss3, self.total_it)
 				writer.add_scalar('train_critic/critic_loss3_reg', critic_loss3_reg, self.total_it)
-				writer.add_scalar('train_critic/critic_loss3_reg_after', critic_loss3_reg_after, self.total_it)
+				# writer.add_scalar('train_critic/critic_loss3_reg_after', critic_loss3_reg_after, self.total_it)
 	
 				target_Q1_Q2_diff = target_Q1 - target_Q2
 				writer.add_scalar('q_diff/target_Q1_Q2_diff_max', target_Q1_Q2_diff.max(), self.total_it)

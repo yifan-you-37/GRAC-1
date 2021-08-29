@@ -48,7 +48,7 @@ class Actor(nn.Module):
 		return action, log_prob, mean, sigma
 
 class Critic(nn.Module):
-	def __init__(self, state_dim, action_dim):
+	def __init__(self, state_dim, action_dim, device, noise_percent=0.):
 		super(Critic, self).__init__()
 
 		# Q1 architecture
@@ -61,6 +61,14 @@ class Critic(nn.Module):
 		self.l5 = nn.Linear(256, 256)
 		self.l6 = nn.Linear(256, 1)
 
+		self.device=device
+		self.noise_percent = noise_percent
+		
+		print('noise percent', self.noise_percent)
+
+	def add_noise(self, x):
+		noise = self.noise_percent * torch.mean(x) * torch.randn(x.shape, device=self.device)
+		return x + noise
 
 	def forward(self, state, action):
 
@@ -73,7 +81,7 @@ class Critic(nn.Module):
 		q2 = F.relu(self.l4(sa))
 		q2 = F.relu(self.l5(q2))
 		q2 = self.l6(q2)
-		return q1, q2
+		return self.add_noise(q1), self.add_noise(q2)
 
 
 	def Q1(self, state, action):
@@ -82,7 +90,9 @@ class Critic(nn.Module):
 		q1 = F.relu(self.l1(sa))
 		q1 = F.relu(self.l2(q1))
 		q1 = self.l3(q1)
-		return q1
+
+
+		return self.add_noise(q1)
 
 	def Q2(self, state, action):
 		sa = torch.cat([state, action], len(action.shape)-1)
@@ -90,7 +100,7 @@ class Critic(nn.Module):
 		q2 = F.relu(self.l4(sa))
 		q2 = F.relu(self.l5(q2))
 		q2 = self.l6(q2)
-		return q2
+		return self.add_noise(q2)
 
 
 class GRAC():
@@ -109,6 +119,7 @@ class GRAC():
 		alpha_start=0.7,
                 alpha_end=0.9,
 		device=torch.device('cuda'),
+		model_noise=0,
 	):
 		self.action_dim = action_dim
 		self.state_dim = state_dim
@@ -120,10 +131,12 @@ class GRAC():
 		self.device = device
 		self.actor_lr = actor_lr # here is actor lr is not the real actor learning rate
 
+		self.model_noise = model_noise
+		print('model noise', self.model_noise)
 		self.actor = Actor(state_dim, action_dim, max_action).to(device)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=self.actor_lr)
 
-		self.critic = Critic(state_dim, action_dim).to(device)
+		self.critic = Critic(state_dim, action_dim, device=device, noise_percent=model_noise).to(device)
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)
 
 		cem_sigma = 1e-2

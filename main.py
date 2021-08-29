@@ -72,6 +72,7 @@ if __name__ == "__main__":
 	parser.add_argument('--expert_demo', action="store_true")
 	parser.add_argument('--no_cem_select_action', action="store_true")
 	parser.add_argument('--critic_lr', default=3e-4, type=float)
+	parser.add_argument('--policy_freq', default=1, type=int)
 	parser.add_argument('--gui', action='store_true')
 
 
@@ -149,6 +150,7 @@ if __name__ == "__main__":
 		kwargs["adaptive_lr_weight"] = args.adaptive_lr_weight
 		kwargs['critic_lr'] = args.critic_lr
 		kwargs['no_cem_select_action'] = args.no_cem_select_action
+		kwargs['policy_freq'] = args.policy_freq
 	if args.policy == 'GRAC_noise' or 'noise' in args.policy:
 		kwargs['model_noise'] = args.model_noise
 		
